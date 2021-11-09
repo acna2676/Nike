@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+    <script type="text/javascript" src="./main.js"></script>
+  </head>
+
+  <body>
+    <div>
+      <label><input type="radio" value="dev" />dev</label>
+
+      <label><input type="radio" value="stg" />stg</label>
+
+      <label><input type="radio" value="prd" />prd</label>
+    </div>
+    <div>
+      <label><input type="radio" value="Device" />Device</label>
+
+      <label><input type="radio" value="SM" />SM</label>
+    </div>
+    <!-- 対象機種の選択 -->
+    <select>
+      <option>ALL</option>
+      <option>Device1 series</option>
+      <option>Device2 series</option>
+    </select>
+    <!-- 国の選択 -->
+    <select>
+      <option>ALL</option>
+      <option>JP</option>
+      <option>US</option>
+    </select>
+    <!-- 言語の選択 -->
+    <select>
+      <option>ALL</option>
+      <option>日本語</option>
+      <option>英語</option>
+    </select>
+    <input type="file" id="image" accept="image/*" />
+    <img id="preview" />
+  </body>
+</html>
