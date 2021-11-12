@@ -10,16 +10,21 @@ $(function () {
 });
 
 $(function () {
-  $.ajax({
-    type: "GET",
-    url: "https://5l5r3mxozc.execute-api.ap-northeast-1.amazonaws.com/dev/nike_apig",
-    dataType: "json",
-  }).then(
-    // 取得成功時
-    function (json) {},
-    function () {
-      // エラー発生時
-      alert("エラー時に表示されるテキスト");
-    }
-  );
+  $("#submit-task").on("click", function (event) {
+    let task = $("#task").val();
+
+    $.ajax({
+      type: "POST",
+      url: "https://gm0yznl72d.execute-api.ap-northeast-1.amazonaws.com/dev/resource",
+      data: { task: task },
+      dataType: "json",
+    }).then(
+      // 取得成功時
+      function (json) {},
+      function () {
+        // エラー発生時
+        alert("エラー時に表示されるテキスト");
+      }
+    );
+  });
 });
