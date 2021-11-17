@@ -46,7 +46,7 @@ $(function () {
     $.ajax({
       type: "POST",
       url: "https://gm0yznl72d.execute-api.ap-northeast-1.amazonaws.com/dev/resource",
-      data: { task: task },
+      data: JSON.stringify({ task: "task" }),
       dataType: "json",
     }).then(
       // 取得成功時

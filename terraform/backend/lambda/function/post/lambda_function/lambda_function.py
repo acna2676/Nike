@@ -72,6 +72,7 @@ def update_item(body, path_parameters):
 
 
 def lambda_main(body, path_parameters):
+    print(body)
 
     status_code = update_item(body, path_parameters)
 

@@ -74,8 +74,15 @@ resource "aws_lambda_permission" "apigw_lambda" {
   source_arn = "arn:aws:execute-api:${var.task_region}:${var.accountId}:${aws_api_gateway_rest_api.api.id}/*/${aws_api_gateway_method.method.http_method}/${aws_api_gateway_resource.resource.path_part}"
 }
 
+# terraformにzip化してもらうための設定
+data "archive_file" "function_zip" {
+  type        = "zip"
+  source_dir  = "backend/lambda/function/post"
+  output_path = "backend/lambda/function/post/lambda_function.zip"
+}
+
 resource "aws_lambda_function" "lambda" {
-  filename      = "backend/lambda/function/post/lambda_function.zip"
+  filename      = "${data.archive_file.function_zip.output_path}"
   function_name = "${var.lambda_function_name}"
   role          = aws_iam_role.iam_role_for_lambda.arn
   handler       = "lambda_function.handler"
@@ -118,8 +125,8 @@ resource "aws_cloudwatch_log_group" "example" {
 }
 
 # See also the following AWS managed policy: AWSLambdaBasicExecutionRole
-resource "aws_iam_policy" "lambda_logging" {
-  name        = "lambda_logging"
+resource "aws_iam_policy" "lambda_service_role" {
+  name        = "lambda_service_role"
   path        = "/"
   description = "IAM policy for logging from a lambda"
 
@@ -135,6 +142,11 @@ resource "aws_iam_policy" "lambda_logging" {
       ],
       "Resource": "arn:aws:logs:*:*:*",
       "Effect": "Allow"
+    },
+     {
+      "Action": "dynamodb:PutItem",
+      "Resource": "arn:aws:dynamodb:ap-northeast-1:197052146621:table/nike-dev",
+      "Effect": "Allow"
     }
   ]
 }
@@ -143,5 +155,5 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "lambda_logs" {
   role       = aws_iam_role.iam_role_for_lambda.name
-  policy_arn = aws_iam_policy.lambda_logging.arn
+  policy_arn = aws_iam_policy.lambda_service_role.arn
 }

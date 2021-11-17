@@ -4,7 +4,7 @@ provider "aws" {
 }
 
 resource "aws_iam_role" "nike_iam_for_lambda_dev" {
-  name = "nike_iam_for_lambda"
+  name = "nike_iam_for_lambda_dev"
 
   assume_role_policy = <<EOF
 {
@@ -23,25 +23,25 @@ resource "aws_iam_role" "nike_iam_for_lambda_dev" {
 EOF
 }
 
-resource "aws_lambda_function" "nike_lambda_dev" {
-  filename      = "backend/lambda/function/get/lambda_function.zip"
-  function_name = "nike_get_tasks"
-  role          = aws_iam_role.nike_iam_for_lambda_dev.arn
-  handler       = "lambda.handler"
+# resource "aws_lambda_function" "nike_lambda_dev" {
+#   filename      = "backend/lambda/function/get/lambda_function.zip"
+#   function_name = "nike_get_tasks"
+#   role          = aws_iam_role.nike_iam_for_lambda_dev.arn
+#   handler       = "lambda.handler"
 
-  # The filebase64sha256() function is available in Terraform 0.11.12 and later
-  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
-  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
-  source_code_hash = filebase64sha256("backend/lambda/function/get/lambda_function.zip")
+#   # The filebase64sha256() function is available in Terraform 0.11.12 and later
+#   # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
+#   # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+#   source_code_hash = filebase64sha256("backend/lambda/function/get/lambda_function.zip")
 
-  runtime = "python3.8"
+#   runtime = "python3.8"
 
-  environment {
-    variables = {
-      foo = "bar"
-    }
-  }
-}
+#   environment {
+#     variables = {
+#       foo = "bar"
+#     }
+#   }
+# }
 
 resource "aws_api_gateway_rest_api" "nike_apig" {
   name = "nike_apig"
@@ -114,10 +114,10 @@ resource "aws_dynamodb_table" "nike-db-dev" {
     type = "S"
   }
 
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
+  # ttl {
+  #   attribute_name = "TimeToExist"
+  #   enabled        = false
+  # }
 
   tags = {
     Name        = "nike"
