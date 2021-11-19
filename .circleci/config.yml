@@ -15,18 +15,21 @@ jobs:
       - run:
           name: Plan terraform
           command: terraform plan ~/terraform
-  deploy:
-    working_directory: ~/terraform
-    docker:
-      - image: hashicorp/terraform:light
-    steps:
-      - checkout
-      - run:
-          name: Init terraform
-          command: terraform init ~/terraform
       - run:
           name: Apply terraform
           command: terraform apply -auto-approve ~/terraform
+  # deploy:
+  #   working_directory: ~/terraform
+  #   docker:
+  #     - image: hashicorp/terraform:light
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         name: Init terraform
+  #         command: terraform init ~/terraform
+  #     - run:
+  #         name: Apply terraform
+  #         command: terraform apply -auto-approve ~/terraform
 # workflows:
 #   version: 2
 #   test-and-deploy:
