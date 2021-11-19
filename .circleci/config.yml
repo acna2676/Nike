@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  test:
+  build:
     working_directory: ~/terraform
     docker:
       - image: hashicorp/terraform:light
@@ -8,16 +8,16 @@ jobs:
       - checkout
       - run:
           name: Init terraform
-          command: terraform init ~/terraform
+          command: terraform init
       - run:
           name: Validate terraform
           command: terraform validate ~/terraform
       - run:
           name: Plan terraform
-          command: terraform plan ~/terraform
+          command: terraform plan
       - run:
           name: Apply terraform
-          command: terraform apply -auto-approve ~/terraform
+          command: terraform apply -auto-approve
   # deploy:
   #   working_directory: ~/terraform
   #   docker:
