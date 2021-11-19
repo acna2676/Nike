@@ -85,4 +85,11 @@ resource "aws_s3_bucket_object" "index_page" {
   etag = filemd5("main.html")
 }
 
+resource "aws_s3_bucket_object" "index_js" {
+  bucket = aws_s3_bucket.bucket.id
+  key = "main.js"
+  source = "main.js"
+  content_type = "text/jsvascript"
+  etag = filemd5("main.js")
+}
 
