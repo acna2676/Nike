@@ -7,23 +7,25 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Validate terraform
-          command: cd terraform
-      - run:
           name: Init terraform
           command: terraform init
+          working_directory: ~/terraform/terraform
       - run:
           name: Validate terraform
           command: ls
+          working_directory: ~/terraform/terraform
       - run:
           name: Validate terraform
           command: terraform validate
+          working_directory: ~/terraform/terraform
       - run:
           name: Plan terraform
           command: terraform plan
+          working_directory: ~/terraform/terraform
       - run:
           name: Apply terraform
           command: terraform apply -auto-approve
+          working_directory: ~/terraform/terraform
   # deploy:
   #   working_directory: ~/terraform
   #   docker:
