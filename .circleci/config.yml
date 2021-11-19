@@ -11,9 +11,6 @@ jobs:
           command: terraform init
       - run:
           name: Validate terraform
-          command: terraform validate terraform
-      - run:
-          name: Validate terraform
           command: pwd ~
       - run:
           name: Validate terraform
