@@ -11,6 +11,9 @@ jobs:
           command: terraform init
       - run:
           name: Validate terraform
+          command: ls
+      - run:
+          name: Validate terraform
           command: terraform validate ~/terraform
       - run:
           name: Plan terraform
