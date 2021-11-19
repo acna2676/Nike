@@ -1,0 +1,47 @@
+version: 2
+jobs:
+  test:
+    working_directory: ~/terraform
+    docker:
+      - image: hashicorp/terraform:light
+    steps:
+      - checkout
+      - run:
+          name: Init terraform
+          command: terraform init ~/terraform
+      - run:
+          name: Validate terraform
+          command: terraform validate ~/terraform
+      - run:
+          name: Plan terraform
+          command: terraform plan ~/terraform
+  deploy:
+    working_directory: ~/terraform
+    docker:
+      - image: hashicorp/terraform:light
+    steps:
+      - checkout
+      - run:
+          name: Init terraform
+          command: terraform init ~/terraform
+      - run:
+          name: Apply terraform
+          command: terraform apply -auto-approve ~/terraform
+# workflows:
+#   version: 2
+#   test-and-deploy:
+#     jobs:
+#       - test
+#       - hold:
+#           type: approval
+#           requires:
+#             - test
+#           filters:
+#             branches:
+#               only: master
+#       - deploy:
+#           requires:
+#             - hold
+#           filters:
+#             branches:
+#               only: master

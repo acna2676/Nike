@@ -10,3 +10,6 @@
 .terraform.lock.hcl
 *.tfstate
 *.tfstate.backup
+
+# Mobile project
+mobile/
