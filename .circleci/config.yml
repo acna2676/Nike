@@ -11,16 +11,16 @@ jobs:
           command: terraform init
       - run:
           name: Validate terraform
-          command: pwd
+          command: cd terraform
       - run:
           name: Validate terraform
-          command: terraform validate terraform
+          command: terraform validate
       - run:
           name: Plan terraform
           command: terraform plan
       - run:
           name: Apply terraform
-          command: terraform apply -auto-approve terraform
+          command: terraform apply -auto-approve
   # deploy:
   #   working_directory: ~/terraform
   #   docker:
