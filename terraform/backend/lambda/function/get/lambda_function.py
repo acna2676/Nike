@@ -18,7 +18,7 @@ def get_item(path_parameters):
 
     try:
         response = table.query(
-            KeyConditionExpression=Key('HK').eq('id_' + user_id) & Key('RK').begins_with('task_')
+            KeyConditionExpression=Key('HK').eq('id_' + user_id)
         )
     except Exception as e:
         print("e = ", e)
@@ -28,7 +28,7 @@ def get_item(path_parameters):
 
     services = []
     for item in items:
-        services.append({'task_name': item.get('RK')[5:]})  # , 'expiration_date': item.get('expiration_date')})
+        services.append({'task_name': item.get('RK')[5:], 'task_id': item.get('RK')})  # , 'expiration_date': item.get('expiration_date')})
 
     body = {
         "services": services

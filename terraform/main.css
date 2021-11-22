@@ -1,0 +1,12 @@
+/*--------------------------------------
+  カード型_02
+--------------------------------------*/
+.card {
+  /* display: flex; */
+  /* justify-content: flex-start; */
+  margin: 1rem;
+  width: 380px;
+  /* overflow: hidden; */
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}

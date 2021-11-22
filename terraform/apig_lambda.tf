@@ -9,6 +9,9 @@ variable "get_tasks_function_name" {
 variable "post_tasks_function_name" {
   default = "post_tasks"
 }
+variable "delete_tasks_function_name" {
+  default = "delete_tasks"
+}
 # API Gateway
 resource "aws_api_gateway_rest_api" "api" {
   name = "nike_api"
@@ -25,6 +28,12 @@ resource "aws_api_gateway_resource" "user_id" {
   parent_id   = aws_api_gateway_resource.tasks.id
   rest_api_id = aws_api_gateway_rest_api.api.id
 }
+
+resource "aws_api_gateway_resource" "task_id" {
+  path_part   = "{task_id}"
+  parent_id   = aws_api_gateway_resource.user_id.id
+  rest_api_id = aws_api_gateway_rest_api.api.id
+}
 resource "aws_api_gateway_method" "get_tasks" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
   resource_id   = aws_api_gateway_resource.user_id.id
@@ -37,6 +46,79 @@ resource "aws_api_gateway_method" "post_tasks" {
   http_method   = "POST"
   authorization = "NONE"
 }
+resource "aws_api_gateway_method" "delete_tasks" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.task_id.id
+  http_method   = "DELETE"
+  authorization = "NONE"
+}
+# for CORS
+resource "aws_api_gateway_method" "task_options" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.task_id.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_method_response" "task_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.task_id.id
+  http_method = aws_api_gateway_method.task_options.http_method
+  status_code = "200"
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true,
+    "method.response.header.Access-Control-Allow-Methods" = true,
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+resource "aws_api_gateway_integration_response" "task_options" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.task_id.id
+  http_method = aws_api_gateway_method.task_options.http_method
+  status_code = aws_api_gateway_method_response.task_options_200.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT,DELETE'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+}
+resource "aws_api_gateway_integration" "task_options_mock" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.task_id.id
+  http_method = aws_api_gateway_method.task_options.http_method
+  type        = "MOCK"
+
+  request_templates = {
+    "application/json" = <<EOF
+{
+  "statusCode": 200
+}
+EOF
+  }
+}
+  # /for CORS
+
+# resource "aws_api_gateway_method_response" "delete_tasks" {
+#     rest_api_id   = "${aws_api_gateway_rest_api.api.id}"
+#     resource_id   = "${aws_api_gateway_resource.task_id.id}"
+#     http_method   = "${aws_api_gateway_method.delete_tasks.http_method}"
+#     status_code   = "200"
+#     response_models = {
+#         "application/json" = "Empty"
+#     }
+#     response_parameters= {
+#         "method.response.header.Access-Control-Allow-Headers" = true,
+#         "method.response.header.Access-Control-Allow-Methods" = true,
+#         "method.response.header.Access-Control-Allow-Origin" = true
+#     }
+#     depends_on = ["aws_api_gateway_method.delete_tasks"]
+# }
 
 resource "aws_api_gateway_integration" "get_integration" {
     rest_api_id             = aws_api_gateway_rest_api.api.id
@@ -61,6 +143,15 @@ resource "aws_api_gateway_integration" "post_integration" {
   uri                     = aws_lambda_function.post_tasks_function.invoke_arn
 }
 
+resource "aws_api_gateway_integration" "delete_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.task_id.id
+  http_method             = aws_api_gateway_method.delete_tasks.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.delete_tasks_function.invoke_arn
+}
+
 resource "aws_api_gateway_deployment" "deployment" {
   rest_api_id = aws_api_gateway_rest_api.api.id
 
@@ -76,8 +167,10 @@ resource "aws_api_gateway_deployment" "deployment" {
       aws_api_gateway_resource.user_id.id,
       aws_api_gateway_method.get_tasks.id,
       aws_api_gateway_method.post_tasks.id,
+      aws_api_gateway_method.delete_tasks.id,
       aws_api_gateway_integration.get_integration.id,
       aws_api_gateway_integration.post_integration.id,
+      aws_api_gateway_integration.delete_integration.id,
     ]))
   }
 
@@ -112,7 +205,15 @@ resource "aws_lambda_permission" "post_tasks" {
   # More: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html
   source_arn = "arn:aws:execute-api:${var.task_region}:${var.accountId}:${aws_api_gateway_rest_api.api.id}/*/${aws_api_gateway_method.post_tasks.http_method}/${aws_api_gateway_resource.tasks.path_part}/${aws_api_gateway_resource.user_id.path_part}"
 }
+resource "aws_lambda_permission" "delete_tasks" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.delete_tasks_function.function_name
+  principal     = "apigateway.amazonaws.com"
 
+  # More: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html
+  source_arn = "arn:aws:execute-api:${var.task_region}:${var.accountId}:${aws_api_gateway_rest_api.api.id}/*/${aws_api_gateway_method.delete_tasks.http_method}/${aws_api_gateway_resource.tasks.path_part}/${aws_api_gateway_resource.user_id.path_part}/${aws_api_gateway_resource.task_id.path_part}"
+}
 # terraformにzip化してもらうための設定
 data "archive_file" "get_function_zip" {
   type        = "zip"
@@ -124,6 +225,11 @@ data "archive_file" "post_function_zip" {
   type        = "zip"
   source_dir  = "backend/lambda/function/post"
   output_path = "backend/lambda/function/post/lambda_function.zip"
+}
+data "archive_file" "delete_function_zip" {
+  type        = "zip"
+  source_dir  = "backend/lambda/function/delete"
+  output_path = "backend/lambda/function/delete/lambda_function.zip"
 }
 
 resource "aws_lambda_function" "get_tasks_function" {
@@ -138,7 +244,8 @@ resource "aws_lambda_function" "get_tasks_function" {
     aws_cloudwatch_log_group.get_tasks,
   ]
 
-  source_code_hash = filebase64sha256("backend/lambda/function/get/lambda_function.zip")
+  # source_code_hash = filebase64sha256("backend/lambda/function/get/lambda_function.zip")
+  source_code_hash = "${data.archive_file.get_function_zip.output_base64sha256}"
 }
 resource "aws_lambda_function" "post_tasks_function" {
   filename      = "${data.archive_file.post_function_zip.output_path}"
@@ -152,9 +259,24 @@ resource "aws_lambda_function" "post_tasks_function" {
     aws_cloudwatch_log_group.post_tasks,
   ]
 
-  source_code_hash = filebase64sha256("backend/lambda/function/post/lambda_function.zip")
+  # source_code_hash = filebase64sha256("backend/lambda/function/post/lambda_function.zip")
+  source_code_hash = "${data.archive_file.post_function_zip.output_base64sha256}"
 }
+resource "aws_lambda_function" "delete_tasks_function" {
+  filename      = "${data.archive_file.delete_function_zip.output_path}"
+  function_name = "${var.delete_tasks_function_name}"
+  role          = aws_iam_role.iam_role_for_lambda.arn
+  handler       = "lambda_function.handler"
+  runtime       = "python3.8"
 
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_logs,
+    aws_cloudwatch_log_group.delete_tasks,
+  ]
+
+  # source_code_hash = filebase64sha256("backend/lambda/function/delete/lambda_function.zip")
+  source_code_hash = "${data.archive_file.delete_function_zip.output_base64sha256}"
+}
 # IAM
 resource "aws_iam_role" "iam_role_for_lambda" {
   name = "task_role"
@@ -186,6 +308,10 @@ resource "aws_cloudwatch_log_group" "post_tasks" {
   name              = "/aws/lambda/${var.post_tasks_function_name}"
   retention_in_days = 14
 }
+resource "aws_cloudwatch_log_group" "delete_tasks" {
+  name              = "/aws/lambda/${var.delete_tasks_function_name}"
+  retention_in_days = 14
+}
 # See also the following AWS managed policy: AWSLambdaBasicExecutionRole
 resource "aws_iam_policy" "lambda_service_role" {
   name        = "lambda_service_role"
@@ -208,7 +334,8 @@ resource "aws_iam_policy" "lambda_service_role" {
      {
       "Action": [
         "dynamodb:Query",
-        "dynamodb:PutItem"
+        "dynamodb:PutItem",
+        "dynamodb:DeleteItem"
       ],
       "Resource": "arn:aws:dynamodb:ap-northeast-1:197052146621:table/nike-dev",
       "Effect": "Allow"

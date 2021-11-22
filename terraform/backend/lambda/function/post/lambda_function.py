@@ -1,5 +1,6 @@
 import json
-import datetime
+import uuid
+
 import boto3
 
 dynamodb = boto3.resource('dynamodb')
@@ -16,10 +17,11 @@ def put_items(task, path_parameters):
 
     if not all([user_id, task_name]):  # , expiration_date]):
         return 500
-
+    task_id = str(uuid.uuid4())
     items = {
         "HK": 'id_' + user_id,
-        "RK": 'task_' + task_name,
+        "RK": task_id,
+        "Task": 'task_' + task_name
     }
     # "expiration_date": expiration_date
 

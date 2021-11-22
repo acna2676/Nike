@@ -1,9 +1,10 @@
-import json
 import datetime
+import json
+
 import boto3
 
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('atum')
+table = dynamodb.Table('nike-dev')
 
 
 def put_items(add_items, path_parameters):
@@ -17,8 +18,8 @@ def put_items(add_items, path_parameters):
             return 500
 
         items = {
-            "pk": 'id_' + user_id,
-            "sk": 'task_' + task_name,
+            "HK": 'id_' + user_id,
+            "Rk": 'task_' + task_name,
         }
         # "expiration_date": expiration_date
 
@@ -33,47 +34,46 @@ def put_items(add_items, path_parameters):
     return 200
 
 
-def f_delete_items(delete_items, path_parameters):
+def f_delete_items(path_parameters):
     user_id = path_parameters.get('user_id')
-    for item in delete_items:
-        task_name = item.get('task_name')
+    task_id = path_parameters.get('task_id')
+    # for item in delete_items:
+    # task_name = item.get('task_name')
 
-        if not all([user_id, task_name]):
-            return 500
+    if not all([user_id, task_id]):
+        return 500
 
-        keys = {
-            "pk": 'id_' + user_id,
-            "sk": 'task_' + task_name,
-        }
+    keys = {
+        "HK": 'id_' + user_id,
+        "RK": task_id,
+    }
 
-        try:
-            table.delete_item(
-                Key=keys
-            )
-        except Exception as e:
-            print(e)
-            return 500
+    try:
+        table.delete_item(
+            Key=keys
+        )
+    except Exception as e:
+        print(e)
+        return 500
 
     return 200
 
 
-def update_item(body, path_parameters):
-    add_items = body.get('add_items')
-    delete_items = body.get('delete_items')
+def update_item(path_parameters):
     # print(add_items, delete_items)
 
-    status_code_put = put_items(add_items, path_parameters)
-    status_code_delete = f_delete_items(delete_items, path_parameters)
+    # status_code_put = put_items(add_items, path_parameters)
+    status_code_delete = f_delete_items(path_parameters)
 
-    if all([status_code_put, status_code_delete]):
-        return 200
+    # if all([status_code_put, status_code_delete]):
+    #     return 200
 
     return 500
 
 
-def lambda_main(body, path_parameters):
+def lambda_main(path_parameters):
 
-    status_code = update_item(body, path_parameters)
+    status_code = update_item(path_parameters)
 
     return status_code
 
@@ -82,14 +82,14 @@ def handler(event, context):
     status_code = 200
     message = 'Success'
 
-    input_body_json = event.get('body')
+    # input_body_json = event.get('body')
     input_path_parameters = event.get('pathParameters')
 
-    if not input_body_json:
-        status_code = 500
+    # if not input_body_json:
+    #     status_code = 500
 
-    input_body = json.loads(input_body_json)
-    status_code = lambda_main(input_body, input_path_parameters)
+    # input_body = json.loads(input_body_json)
+    status_code = lambda_main(input_path_parameters)
 
     body = {
         'message': message,

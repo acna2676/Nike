@@ -20,5 +20,5 @@ $ docker-compose exec terraform /bin/ash
 ```bash
 $ terraform init ← 初回のみ
 $ terraform plan
-$ terraform apply
+$ terraform apply --auto-approve
 ```
